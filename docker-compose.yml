@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  ivory:
+    build:
+      context: .
+    image: "postgres:14.1-alpine"
+    environment:
+      # POSTGRES_USER, POSTGRES_PASSWORD is the setup for the superuser
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rootUserSeriousPassword1
+      POSTGRES_DB: ivoryPgExisting
+    ports:
+      - "5555:5432"

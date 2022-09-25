@@ -1,0 +1,6 @@
+.idea/
+vendor/
+cover.out
+coverage.html
+*.swp
+go.sum
