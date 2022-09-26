@@ -16,7 +16,7 @@ The following is likely all you need to know in order to make use of this librar
 
 - If a database name is provided in the options, a random database name is not generated.
 Otherwise, a collision-resistant database name is generated.
-- If told to create a database, Ivory will oblige and 2 bind connections:
+- If told to create a database, Ivory will oblige and bind 2 connections:
 1. Server-scoped (connection without database in connection string -- required to drop a database instance)
 2. Database-scoped (connection with database in connection string)
 
@@ -47,11 +47,11 @@ As an example:
 	}
 	fmt.Printf("created: %s", dbName)
 
-After the deferred function is called, the database is dropped.  
+After the deferred function is called, the database is dropped.
 
 As an example of how to create many databases:
 
-    // set aside database-context connections, say if we want to use them as normal *sql.DB handles 
+    // set aside database-context connections, say if we want to use them as normal *sql.DB handles
 	availableDBs := make(map[string]*sql.DB, 0)
 	for i := 0; i < 10; i++ {
 		// important: must be inside loop as dbOptions are updated in place!
@@ -78,12 +78,12 @@ As an example of how to create many databases:
 		databasesCreated += fmt.Sprintf("%s ", k)
 	}
 	fmt.Printf("created: %s", databasesCreated)
-    // created: _disp_pg_1664125384_q57qcq8qid6a7k7d _disp_pg_1664125384_1yj7i14v7iqauzln _disp_pg_1664125385_galb4ijb... 
+    // created: _disp_pg_1664125384_q57qcq8qid6a7k7d _disp_pg_1664125384_1yj7i14v7iqauzln _disp_pg_1664125385_galb4ijb...
 
 
 That's it!  No need to act as a database janitor or deal with a slowly growing PostgreSQLinstance.
 
-That said, if your code panics or the context is cancelled before the deferred functions can run, 
+That said, if your code panics or the context is cancelled before the deferred functions can run,
 `FindLikelyAbandonedDBs()` and `DropDB()` are available to you for finding and dropping databases, respectively.
 
 
