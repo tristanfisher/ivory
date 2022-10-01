@@ -21,7 +21,7 @@ Otherwise, a collision-resistant database name is generated.
 2. Database-scoped (connection with database in connection string)
 
 - A slice of strings may be provided for Ivory to be treated as migrations.  These may include any valid SQL, including transactions.
-- A "tear down function" that will drop the created (or specified) database and close database handles.
+- A "tear down function" that will drop the created (or specified) database and close database handles is returned.  Calling this is optional.  Ivory does not implicitly drop databases or close connections.
 
 As an example:
 
