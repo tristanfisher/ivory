@@ -1,5 +1,8 @@
 # Ivory 🐘
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/tristanfisher/ivory.svg)](https://pkg.go.dev/github.com/tristanfisher/ivory)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tristanfisher/ivory)](https://goreportcard.com/badge/github.com/tristanfisher/ivory)
+
 ## overview
 
 Ivory makes it easy for you to create a PostgreSQL database instance from a Go program.
