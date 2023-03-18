@@ -5,7 +5,7 @@
 
 ## overview
 
-Ivory makes it easy for you to create a PostgreSQL database instance from a Go program.
+Ivory makes it easy for you to create and manage PostgreSQL databases via a Go program.
 
 This is particularly useful during tests or any other time that you only want a pg database with a lifecycle that is managed programmatically.
 
