@@ -313,6 +313,11 @@ func (do *DatabaseOptions) DSN() (string, error) {
 // Connect uses a DSN to create a database handle to a target dbName
 // return is the db handle and an error if setup was prevented
 func Connect(ctx context.Context, do *DatabaseOptions) (*sql.DB, error) {
+
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	dsn, err := do.DSN()
 	if err != nil {
 		return nil, err
