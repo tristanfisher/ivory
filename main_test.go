@@ -417,7 +417,7 @@ func TestFindLikelyAbandonedDBs(t *testing.T) {
 		User:           "postgres",
 		Password:       "rootUserSeriousPassword1",
 	}
-	dbHandle, err := connect(ctx, noDBOpts)
+	dbHandle, err := Connect(ctx, noDBOpts)
 	if err != nil {
 		t.Errorf("Test setup failed while creating a new DB handle. error = %v", err)
 		t.FailNow()

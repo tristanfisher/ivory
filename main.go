@@ -40,7 +40,8 @@ const remainingNameBudget = PgMaxIdentifierLen - (len(AutogenDBPrefix) + randSuf
 // these are string replacements, not placeholders that can be substituted
 // note %% literal for wildcard in postgres
 // only a single database can be dropped at a time.  if not iterating in code, the drop statements can be generated via this format:
-// 	SELECT 'DROP DATABASE "'||datname||'";' FROM pg_database WHERE datname LIKE '_disp_pg%' AND datistemplate = false;
+//
+//	SELECT 'DROP DATABASE "'||datname||'";' FROM pg_database WHERE datname LIKE '_disp_pg%' AND datistemplate = false;
 const findCreatedTemplate = `SELECT datname FROM pg_database WHERE datname LIKE '%s%%' AND datistemplate = false;`
 const deleteTemplate = `DROP DATABASE IF EXISTS "%s"` // double quote for any upper case
 
@@ -78,10 +79,10 @@ func mightHaveTransaction(sqlText string) bool {
 // todo: customIdPortion maybe doesn't make sense
 //
 // return is:
-//  - db handle without the db open
-// 	- db handle with the db open
-//	- the name of the db
-//  - a teardown/cleanup function specific to a DB (the connection not associated with a given db is closed in this function)
+//   - db handle without the db open
+//   - db handle with the db open
+//   - the name of the db
+//   - a teardown/cleanup function specific to a DB (the connection not associated with a given db is closed in this function)
 //
 // The teardown function must be called to clean up resources after work is complete.
 // Not calling the teardown can also be useful if you want resources to persist for whatever reason
@@ -91,13 +92,13 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 	// bind connection needed for cleanup func as we cannot drop an open database
 	userOptsDatabaseName := opts.Database
 	opts.Database = ""
-	dbHandleNoBoundDB, err := connect(ctx, opts)
+	dbHandleNoBoundDB, err := Connect(ctx, opts)
 	if err != nil {
 		return nil, nil, opts.Database, dbHandleNoBoundDB.Close, err
 	}
 
 	// post connection binding without opening the database, store database name for usage
-	// (necessary post connect because we can't provide the DB name on connection if it doesn't exist yet)
+	// (necessary post Connect because we can't provide the DB name on connection if it doesn't exist yet)
 	if len(userOptsDatabaseName) > 0 {
 		opts.Database = userOptsDatabaseName
 	}
@@ -131,7 +132,7 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 	// with the database now existing, bind a connection that opens the database
 	// if the user provides sql text not as options, it's on them to make sure sql (likely migrations) target the
 	// correct DB.  in this case, dbHandleNoBoundDB and dbHandleBoundDB are functionally equivalent
-	dbHandleBoundDB, err := connect(ctx, opts)
+	dbHandleBoundDB, err := Connect(ctx, opts)
 	if err != nil {
 		return dbHandleNoBoundDB, nil, opts.Database, dbHandleBoundDB.Close, err
 	}
@@ -195,9 +196,9 @@ type DatabaseOptions struct {
 	reflectType reflect.Type
 }
 
-// validSSLModes is used to lookup if a user-provided string is allowed in creating a connection to pg
+// ValidSSLModes is used to lookup if a user-provided string is allowed in creating a connection to pg
 // https://www.postgresql.org/docs/current/libpq-ssl.html
-var validSSLModes = map[string]struct{}{
+var ValidSSLModes = map[string]struct{}{
 	"disable":     {},
 	"allow":       {},
 	"prefer":      {},
@@ -206,14 +207,14 @@ var validSSLModes = map[string]struct{}{
 	"verify-full": {},
 }
 
-func isValidSSLString(s string) bool {
-	_, ok := validSSLModes[s]
+func IsValidSSLString(s string) bool {
+	_, ok := ValidSSLModes[s]
 	return ok
 }
 
-// get the DSN string off of the struct
+// GetDSNPart gets the DSN string off of the struct
 // error should only be thrown based on developer error in this library
-func (do *DatabaseOptions) getDSNPart(fieldName string) (string, error) {
+func (do *DatabaseOptions) GetDSNPart(fieldName string) (string, error) {
 
 	if do.reflectType == nil {
 		do.reflectType = reflect.TypeOf(*do)
@@ -239,7 +240,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	dsnPortions := make([]string, 0)
 
 	if len(do.Host) > 0 {
-		partFmt, err := do.getDSNPart("Host")
+		partFmt, err := do.GetDSNPart("Host")
 		if err != nil {
 			return "", err
 		}
@@ -247,7 +248,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if do.Port > 0 {
-		partFmt, err := do.getDSNPart("Port")
+		partFmt, err := do.GetDSNPart("Port")
 		if err != nil {
 			return "", err
 		}
@@ -255,7 +256,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if len(do.Database) > 0 {
-		partFmt, err := do.getDSNPart("Database")
+		partFmt, err := do.GetDSNPart("Database")
 		if err != nil {
 			return "", err
 		}
@@ -263,7 +264,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if len(do.Schema) > 0 {
-		partFmt, err := do.getDSNPart("Schema")
+		partFmt, err := do.GetDSNPart("Schema")
 		if err != nil {
 			return "", err
 		}
@@ -271,7 +272,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if len(do.User) > 0 {
-		partFmt, err := do.getDSNPart("User")
+		partFmt, err := do.GetDSNPart("User")
 		if err != nil {
 			return "", err
 		}
@@ -279,7 +280,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if len(do.Password) > 0 {
-		partFmt, err := do.getDSNPart("Password")
+		partFmt, err := do.GetDSNPart("Password")
 		if err != nil {
 			return "", err
 		}
@@ -287,11 +288,11 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if len(do.SslMode) > 0 {
-		if !isValidSSLString(do.SslMode) {
+		if !IsValidSSLString(do.SslMode) {
 			return "", fmt.Errorf("invalid ssl mode provided: %s", do.SslMode)
 		}
 
-		partFmt, err := do.getDSNPart("SslMode")
+		partFmt, err := do.GetDSNPart("SslMode")
 		if err != nil {
 			return "", err
 		}
@@ -299,7 +300,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	}
 
 	if do.ConnectTimeout > 0 {
-		partFmt, err := do.getDSNPart("ConnectTimeout")
+		partFmt, err := do.GetDSNPart("ConnectTimeout")
 		if err != nil {
 			return "", err
 		}
@@ -309,15 +310,23 @@ func (do *DatabaseOptions) DSN() (string, error) {
 	return strings.Join(dsnPortions, " "), nil
 }
 
-// connect uses a DSN to create a database handle to a target dbName
+// Connect uses a DSN to create a database handle to a target dbName
 // return is the db handle and an error if setup was prevented
-func connect(ctx context.Context, do *DatabaseOptions) (*sql.DB, error) {
+func Connect(ctx context.Context, do *DatabaseOptions) (*sql.DB, error) {
+
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	dsn, err := do.DSN()
 	if err != nil {
 		return nil, err
 	}
 
-	// on postgres, this does not verify a connection will be successful
+	// on postgres, sql.Open does not verify a connection will be successful.
+	//
+	// the connector for lib/pq takes a DSN string for construction, so unfortunately, we have to build a DSN
+	// instead of assigning to struct fields
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
