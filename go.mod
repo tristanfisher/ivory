@@ -1,4 +1,4 @@
-module github.com/tristanfisher/ivory
+module github.com/tristanfisher/ivory/v2
 
 go 1.20
 
