@@ -69,18 +69,18 @@ func Test_mightHaveTransaction(t *testing.T) {
 
 func TestDatabaseOptions_DSN(t *testing.T) {
 	type fields struct {
-		Host                string
-		Port                int
-		Database            string
-		Schema              string
-		User                string
-		Password            string
-		SslMode             string
-		ConnectTimeout      time.Duration
-		MaxOpenConns        int
-		MaxIdleConns        int
-		DefaultQueryTimeout time.Duration
-		reflectType         reflect.Type
+		Host                  string
+		Port                  int
+		Database              string
+		Schema                string
+		User                  string
+		Password              string
+		SslMode               string
+		ConnectTimeoutSeconds int
+		MaxOpenConns          int
+		MaxIdleConns          int
+
+		reflectType reflect.Type
 	}
 	tests := []struct {
 		name    string
@@ -135,14 +135,14 @@ func TestDatabaseOptions_DSN(t *testing.T) {
 		{
 			name: "allFields",
 			fields: fields{
-				Host:           "localhost",
-				Port:           1024,
-				Database:       "exampleDB",
-				Schema:         "exampleSchema",
-				User:           "user",
-				Password:       "password",
-				SslMode:        "disable",
-				ConnectTimeout: 10,
+				Host:                  "localhost",
+				Port:                  1024,
+				Database:              "exampleDB",
+				Schema:                "exampleSchema",
+				User:                  "user",
+				Password:              "password",
+				SslMode:               "disable",
+				ConnectTimeoutSeconds: 10,
 			},
 			want: "host='localhost' port=1024 dbname='exampleDB' search_path='exampleSchema' user='user' password='password' sslmode=disable connect_timeout=10",
 		},
@@ -150,17 +150,17 @@ func TestDatabaseOptions_DSN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			do := &DatabaseOptions{
-				Host:           tt.fields.Host,
-				Port:           tt.fields.Port,
-				Database:       tt.fields.Database,
-				Schema:         tt.fields.Schema,
-				User:           tt.fields.User,
-				Password:       tt.fields.Password,
-				SslMode:        tt.fields.SslMode,
-				ConnectTimeout: tt.fields.ConnectTimeout,
-				MaxOpenConns:   tt.fields.MaxOpenConns,
-				MaxIdleConns:   tt.fields.MaxIdleConns,
-				reflectType:    tt.fields.reflectType,
+				Host:                  tt.fields.Host,
+				Port:                  tt.fields.Port,
+				Database:              tt.fields.Database,
+				Schema:                tt.fields.Schema,
+				User:                  tt.fields.User,
+				Password:              tt.fields.Password,
+				SslMode:               tt.fields.SslMode,
+				ConnectTimeoutSeconds: tt.fields.ConnectTimeoutSeconds,
+				MaxOpenConns:          tt.fields.MaxOpenConns,
+				MaxIdleConns:          tt.fields.MaxIdleConns,
+				reflectType:           tt.fields.reflectType,
 			}
 
 			got, err := do.DSN()
@@ -410,12 +410,12 @@ func TestFindLikelyAbandonedDBs(t *testing.T) {
 
 	// bind a new connection not specific to a database
 	noDBOpts := &DatabaseOptions{
-		Host:           "localhost",
-		Port:           5555,
-		ConnectTimeout: 10,
-		SslMode:        "disable",
-		User:           "postgres",
-		Password:       "rootUserSeriousPassword1",
+		Host:                  "localhost",
+		Port:                  5555,
+		ConnectTimeoutSeconds: 10,
+		SslMode:               "disable",
+		User:                  "postgres",
+		Password:              "rootUserSeriousPassword1",
 	}
 	dbHandle, err := Connect(ctx, noDBOpts)
 	if err != nil {

@@ -181,16 +181,16 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 // DatabaseOptions is used for connection parameters and setting up our handle
 // used to generate a DSN() for connection
 type DatabaseOptions struct {
-	Host           string        `dsnFormat:"host='%s'"`
-	Port           int           `dsnFormat:"port=%d"`
-	Database       string        `dsnFormat:"dbname='%s'"`
-	Schema         string        `dsnFormat:"search_path='%s'"`
-	User           string        `dsnFormat:"user='%s'"`
-	Password       string        `dsnFormat:"password='%s'"`
-	SslMode        string        `dsnFormat:"sslmode=%s"`
-	ConnectTimeout time.Duration `dsnFormat:"connect_timeout=%d"`
-	MaxOpenConns   int
-	MaxIdleConns   int
+	Host                  string `dsnFormat:"host='%s'"`
+	Port                  int    `dsnFormat:"port=%d"`
+	Database              string `dsnFormat:"dbname='%s'"`
+	Schema                string `dsnFormat:"search_path='%s'"`
+	User                  string `dsnFormat:"user='%s'"`
+	Password              string `dsnFormat:"password='%s'"`
+	SslMode               string `dsnFormat:"sslmode=%s"`
+	ConnectTimeoutSeconds int    `dsnFormat:"connect_timeout=%d"`
+	MaxOpenConns          int
+	MaxIdleConns          int
 
 	// internal for DSN string generation
 	reflectType reflect.Type
@@ -236,7 +236,7 @@ func (do *DatabaseOptions) GetDSNPart(fieldName string) (string, error) {
 // name, type in addition to the dsn format string in the struct tags
 func (do *DatabaseOptions) DSN() (string, error) {
 	// slice so we can trivially join and not deal with double spaces
-	// for string-comparison internal tests (whitespace trimming is not trivially easy with spaces, special chars valid in postgres fields)
+	// for string-comparison internal tests (whitespace trimming isConnectTimeoutSeconds not trivially easy with spaces, special chars valid in postgres fields)
 	dsnPortions := make([]string, 0)
 
 	if len(do.Host) > 0 {
@@ -299,12 +299,12 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslMode))
 	}
 
-	if do.ConnectTimeout > 0 {
-		partFmt, err := do.GetDSNPart("ConnectTimeout")
+	if do.ConnectTimeoutSeconds > 0 {
+		partFmt, err := do.GetDSNPart("ConnectTimeoutSeconds")
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.ConnectTimeout))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.ConnectTimeoutSeconds))
 	}
 
 	return strings.Join(dsnPortions, " "), nil
