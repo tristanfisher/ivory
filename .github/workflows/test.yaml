@@ -1,0 +1,38 @@
+name: test
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    services:
+      postgresql:
+        image: postgres:14.1-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: rootUserSeriousPassword1
+          POSTGRES_DB: ivoryPgExisting
+        ports:
+          - 127.0.0.1:5555:5432
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+
+      - name: Run Test Suit
+        run: go test ./...
