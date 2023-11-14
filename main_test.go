@@ -79,6 +79,7 @@ func TestDatabaseOptions_DSN(t *testing.T) {
 		SslCert               string
 		SslKey                string
 		SslRootcert           string
+		SslCertMode           string
 		ConnectTimeoutSeconds int
 		MaxOpenConns          int
 		MaxIdleConns          int
@@ -148,9 +149,10 @@ func TestDatabaseOptions_DSN(t *testing.T) {
 				SslCert:               "./cert.pem",
 				SslKey:                "./key.pem",
 				SslRootcert:           "./rootcert.pem",
+				SslCertMode:           "require",
 				ConnectTimeoutSeconds: 10,
 			},
-			want: "host='localhost' port=1024 dbname='exampleDB' search_path='exampleSchema' user='user' password='password' sslmode=verify-full sslcert='./cert.pem' sslkey='./key.pem' sslrootcert='./rootcert.pem' connect_timeout=10",
+			want: "host='localhost' port=1024 dbname='exampleDB' search_path='exampleSchema' user='user' password='password' sslmode=verify-full sslcert='./cert.pem' sslkey='./key.pem' sslrootcert='./rootcert.pem' sslcertmode=require connect_timeout=10",
 		},
 	}
 	for _, tt := range tests {
@@ -166,6 +168,7 @@ func TestDatabaseOptions_DSN(t *testing.T) {
 				SslCert:               tt.fields.SslCert,
 				SslKey:                tt.fields.SslKey,
 				SslRootCert:           tt.fields.SslRootcert,
+				SslCertMode:           tt.fields.SslCertMode,
 				ConnectTimeoutSeconds: tt.fields.ConnectTimeoutSeconds,
 				MaxOpenConns:          tt.fields.MaxOpenConns,
 				MaxIdleConns:          tt.fields.MaxIdleConns,
