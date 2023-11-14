@@ -188,6 +188,9 @@ type DatabaseOptions struct {
 	User                  string `dsnFormat:"user='%s'"`
 	Password              string `dsnFormat:"password='%s'"`
 	SslMode               string `dsnFormat:"sslmode=%s"`
+	SslCert               string `dsnFormat:"sslcert='%s'"`
+	SslKey                string `dsnFormat:"sslkey='%s'"`
+	SslRootCert           string `dsnFormat:"sslrootcert='%s'"`
 	ConnectTimeoutSeconds int    `dsnFormat:"connect_timeout=%d"`
 	MaxOpenConns          int
 	MaxIdleConns          int
@@ -297,6 +300,28 @@ func (do *DatabaseOptions) DSN() (string, error) {
 			return "", err
 		}
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslMode))
+	}
+
+	if len(do.SslCert) > 0 {
+		partFmt, err := do.GetDSNPart("SslCert")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslCert))
+	}
+	if len(do.SslKey) > 0 {
+		partFmt, err := do.GetDSNPart("SslKey")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslKey))
+	}
+	if len(do.SslRootCert) > 0 {
+		partFmt, err := do.GetDSNPart("SslRootCert")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslRootCert))
 	}
 
 	if do.ConnectTimeoutSeconds > 0 {
