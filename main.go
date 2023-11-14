@@ -188,6 +188,10 @@ type DatabaseOptions struct {
 	User                  string `dsnFormat:"user='%s'"`
 	Password              string `dsnFormat:"password='%s'"`
 	SslMode               string `dsnFormat:"sslmode=%s"`
+	SslCert               string `dsnFormat:"sslcert='%s'"`
+	SslKey                string `dsnFormat:"sslkey='%s'"`
+	SslRootCert           string `dsnFormat:"sslrootcert='%s'"`
+	SslCertMode           string `dsnFormat:"sslcertmode=%s"`
 	ConnectTimeoutSeconds int    `dsnFormat:"connect_timeout=%d"`
 	MaxOpenConns          int
 	MaxIdleConns          int
@@ -209,6 +213,19 @@ var ValidSSLModes = map[string]struct{}{
 
 func IsValidSSLString(s string) bool {
 	_, ok := ValidSSLModes[s]
+	return ok
+}
+
+// ValidSSLCertModes is used to lookup if a user-provided string defining ssl cert mode for connecting pg is allowed
+// https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-SSLCERTMODE
+var ValidSSLCertModes = map[string]struct{}{
+	"disable": {},
+	"allow":   {},
+	"require": {},
+}
+
+func IsValidSSLCertModeString(s string) bool {
+	_, ok := ValidSSLCertModes[s]
 	return ok
 }
 
@@ -297,6 +314,40 @@ func (do *DatabaseOptions) DSN() (string, error) {
 			return "", err
 		}
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslMode))
+	}
+
+	if len(do.SslCert) > 0 {
+		partFmt, err := do.GetDSNPart("SslCert")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslCert))
+	}
+	if len(do.SslKey) > 0 {
+		partFmt, err := do.GetDSNPart("SslKey")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslKey))
+	}
+	if len(do.SslRootCert) > 0 {
+		partFmt, err := do.GetDSNPart("SslRootCert")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslRootCert))
+	}
+
+	if len(do.SslCertMode) > 0 {
+		if !IsValidSSLCertModeString(do.SslCertMode) {
+			return "", fmt.Errorf("invalid sslcertmode provided: %s", do.SslCertMode)
+		}
+		partFmt, err := do.GetDSNPart("SslCertMode")
+		if err != nil {
+			return "", err
+		}
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslCertMode))
+
 	}
 
 	if do.ConnectTimeoutSeconds > 0 {
