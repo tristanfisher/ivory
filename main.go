@@ -94,15 +94,15 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 	opts.Database = ""
 	dbHandleNoBoundDB, err := Connect(ctx, opts)
 
-	// previous versions of ivory returned dbHandleNoBoundDB.Close, even if Connect() erred
-	// noOpFn is returned so the expected Close() err can be called without nil checking.
-	noOpFn := func() error { return nil }
-	if dbHandleNoBoundDB == nil {
-		return nil, nil, opts.Database, noOpFn, err
-	}
-
 	if err != nil {
-		return nil, nil, opts.Database, dbHandleNoBoundDB.Close, err
+		// previous versions of ivory returned dbHandleNoBoundDB.Close, even if Connect() erred
+		// a no-op function is returned so the expected Close() err can be called without nil checking.
+		closeFn := func() error { return nil }
+		if dbHandleNoBoundDB != nil {
+			closeFn = dbHandleNoBoundDB.Close
+		}
+
+		return nil, nil, opts.Database, closeFn, err
 	}
 
 	// post connection binding without opening the database, store database name for usage
