@@ -39,7 +39,7 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Run Go Vet
+      - name: Run go vet
         run: go vet ./...
 
       - name: Run Staticcheck
@@ -48,10 +48,10 @@ jobs:
           $(go env GOPATH)/bin/staticcheck ./...
 
       # with static analysis of changes done, confirm tests still pass
-      - name: Download Dependencies
+      - name: Download dependencies
         run: go mod download
 
-      - name: Run Tests
+      - name: Run tests
         env:
           DATABASE_URL: postgres://postgres:rootUserSeriousPassword1@localhost:5555/ivoryPgExisting?sslmode=disable
         run: go test ./...
