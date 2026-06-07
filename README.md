@@ -14,24 +14,54 @@ managed programmatically.
 
 ## Usage
 
-When not told to create a database or run SQL, ivory will simply try to connect to a PostgreSQL database, return
-database handles, and an function for dropping an existing database and closing DB handles.
+### Connection handling
 
-However, the primary goal of this library is to make it easy to bootstrap and cleanup databases.
+When not told to create a database or run SQL, Ivory will simply try to connect to a PostgreSQL database, return
+database handles, and a function for dropping an existing database and closing DB handles.
+
+In this case, Ivory provides convenience and code clarity by providing a struct for connection instantiation instead of using string interpolation.
+
+e.g.
+
+Ivory:
+
+```go
+connOpts := &DatabaseOptions{
+    Host:     "localhost",
+    Port:     5555,
+    Database: "flannel",
+    SslMode:  "disable",
+    User:     "postgres",
+    Password: "rootUserSeriousPassword1",
+    SslMode:  "verify-full"
+}
+```
+
+versus string interpolation:
+
+```go
+connOpts := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		"localhost", 5555, "flannel", "rootUserSeriousPassword1", "flannel", "verify-full")
+```
+
+### Bootstrapping and Cleanup
+
+A goal of this library is to make it easy to bootstrap and cleanup databases.
 
 The following is likely all you need to know in order to make use of this library:
 
-- If a database name is provided in the options, a random database name is not generated. Otherwise, a
-collision-resistant database name is generated.
+- If a database name is provided in the options, it is used.  If no database name is provided in the options, a collision-resistant database name is generated.
 - If told to create a database, Ivory will oblige and bind 2 connections:
   1. Server-scoped (connection without database in connection string -- required to drop a database instance)
   2. Database-scoped (connection with database in connection string)
 - A slice of strings may be provided for Ivory to be treated as migrations. These may include any valid SQL, including
   transactions.
 - A "tear down function" that will drop the created (or specified) database and close database handles is returned.
-  Calling this is optional.  Ivory does not implicitly drop databases or close connections.
+  Calling this is optional.  Ivory does **not** implicitly drop databases or close connections.
 
-As an example:
+#### Examples
+
+Creating a single database with DDL:
 
 ```go
 dbOptions := &ivory.DatabaseOptions{

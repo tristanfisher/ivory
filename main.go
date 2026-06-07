@@ -93,8 +93,16 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 	userOptsDatabaseName := opts.Database
 	opts.Database = ""
 	dbHandleNoBoundDB, err := Connect(ctx, opts)
+
 	if err != nil {
-		return nil, nil, opts.Database, dbHandleNoBoundDB.Close, err
+		// previous versions of ivory returned dbHandleNoBoundDB.Close, even if Connect() erred
+		// a no-op function is returned so the expected Close() err can be called without nil checking.
+		closeFn := func() error { return nil }
+		if dbHandleNoBoundDB != nil {
+			closeFn = dbHandleNoBoundDB.Close
+		}
+
+		return nil, nil, opts.Database, closeFn, err
 	}
 
 	// post connection binding without opening the database, store database name for usage
@@ -405,10 +413,6 @@ func generateDbName(customIdPortion string) string {
 	const charChoices = "abcdefghijklmnopqrstuvwxyz0123456789"
 	const charChoiceLen = len(charChoices)
 
-	// a little gross to re-seed each call, but so would be doing this even if not required in New()
-	// this is not expected to be needed to be crypto-secure
-	rand.Seed(time.Now().UnixNano())
-
 	asciiSlice := make([]byte, randSuffixLen)
 	for i := range asciiSlice {
 		asciiSlice[i] = charChoices[rand.Intn(charChoiceLen)]
@@ -469,6 +473,7 @@ func FindLikelyAbandonedDBs(ctx context.Context, dbHandle *sql.DB, prefix string
 	if err != nil {
 		return []string{}, err
 	}
+	defer rows.Close()
 	results := make([]string, 0)
 	for rows.Next() {
 		var r string
