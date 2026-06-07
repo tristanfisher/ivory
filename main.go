@@ -188,17 +188,20 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 
 // DatabaseOptions is used for connection parameters and setting up our handle
 // used to generate a DSN() for connection
+//
+// Note that escaping is performed in DSN creation instead of single quoting in dsnFormat
+// as calls to fmt.Sprintf can result in double single-quoting.
 type DatabaseOptions struct {
-	Host                  string `dsnFormat:"host='%s'"`
+	Host                  string `dsnFormat:"host=%s"`
 	Port                  int    `dsnFormat:"port=%d"`
-	Database              string `dsnFormat:"dbname='%s'"`
-	Schema                string `dsnFormat:"search_path='%s'"`
-	User                  string `dsnFormat:"user='%s'"`
-	Password              string `dsnFormat:"password='%s'"`
+	Database              string `dsnFormat:"dbname=%s"`
+	Schema                string `dsnFormat:"search_path=%s"`
+	User                  string `dsnFormat:"user=%s"`
+	Password              string `dsnFormat:"password=%s"`
 	SslMode               string `dsnFormat:"sslmode=%s"`
-	SslCert               string `dsnFormat:"sslcert='%s'"`
-	SslKey                string `dsnFormat:"sslkey='%s'"`
-	SslRootCert           string `dsnFormat:"sslrootcert='%s'"`
+	SslCert               string `dsnFormat:"sslcert=%s"`
+	SslKey                string `dsnFormat:"sslkey=%s"`
+	SslRootCert           string `dsnFormat:"sslrootcert=%s"`
 	SslCertMode           string `dsnFormat:"sslcertmode=%s"`
 	ConnectTimeoutSeconds int    `dsnFormat:"connect_timeout=%d"`
 	MaxOpenConns          int
@@ -256,9 +259,17 @@ func (do *DatabaseOptions) GetDSNPart(fieldName string) (string, error) {
 	return dsnFormat, nil
 }
 
+func escapeAsSingleQuote(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `'`, `\'`)
+	return "'" + s + "'"
+}
+
 // DSN generates a DSN off of database options or returns an error
 // it steps over each field of DatabaseOptions instead of using more reflection to get the field
 // name, type in addition to the dsn format string in the struct tags
+//
+// We generate the connection string in key=value format instead of URL format due to ease of escaping values.
 func (do *DatabaseOptions) DSN() (string, error) {
 	// slice so we can trivially join and not deal with double spaces
 	// for string-comparison internal tests (whitespace trimming isConnectTimeoutSeconds not trivially easy with spaces, special chars valid in postgres fields)
@@ -269,7 +280,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.Host))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.Host)))
 	}
 
 	if do.Port > 0 {
@@ -277,6 +288,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
+		// pass through whatever int value, even if it results in an error
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.Port))
 	}
 
@@ -285,7 +297,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.Database))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.Database)))
 	}
 
 	if len(do.Schema) > 0 {
@@ -293,7 +305,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.Schema))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.Schema)))
 	}
 
 	if len(do.User) > 0 {
@@ -301,7 +313,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.User))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.User)))
 	}
 
 	if len(do.Password) > 0 {
@@ -309,7 +321,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.Password))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.Password)))
 	}
 
 	if len(do.SslMode) > 0 {
@@ -329,21 +341,23 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslCert))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.SslCert)))
 	}
+
 	if len(do.SslKey) > 0 {
 		partFmt, err := do.GetDSNPart("SslKey")
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslKey))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.SslKey)))
 	}
+
 	if len(do.SslRootCert) > 0 {
 		partFmt, err := do.GetDSNPart("SslRootCert")
 		if err != nil {
 			return "", err
 		}
-		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslRootCert))
+		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, escapeAsSingleQuote(do.SslRootCert)))
 	}
 
 	if len(do.SslCertMode) > 0 {
@@ -354,8 +368,8 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
+		// certmode is constrained.  no need to escape.
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.SslCertMode))
-
 	}
 
 	if do.ConnectTimeoutSeconds > 0 {
@@ -363,6 +377,7 @@ func (do *DatabaseOptions) DSN() (string, error) {
 		if err != nil {
 			return "", err
 		}
+		// pass through whatever int value, even if it results in an error
 		dsnPortions = append(dsnPortions, fmt.Sprintf(partFmt, do.ConnectTimeoutSeconds))
 	}
 
