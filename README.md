@@ -44,6 +44,8 @@ connOpts := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%
 		"localhost", 5555, "flannel", "rootUserSeriousPassword1", "flannel", "verify-full")
 ```
 
+Ivory handles building the DSN appropriately.
+
 ### Bootstrapping and Cleanup
 
 A goal of this library is to make it easy to bootstrap and cleanup databases.
