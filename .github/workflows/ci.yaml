@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      # opened = new request
+      - opened
+      # reopened = closed PR is re-opened
+      - reopened
+      # synchronize = commits on active PR
+      - synchronize
+
+jobs:
+  lint-vet-test:
+    runs-on: ubuntu-latest
+
+    services:
+      ivory:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: rootUserSeriousPassword1
+          POSTGRES_DB: ivoryPgExisting
+        ports:
+          - 5555:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run Go Vet
+        run: go vet ./...
+
+      - name: Run Staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          $(go env GOPATH)/bin/staticcheck ./...
+
+      # with static analysis of changes done, confirm tests still pass
+      - name: Download Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgres://postgres:rootUserSeriousPassword1@localhost:5555/ivoryPgExisting?sslmode=disable
+        run: go test ./...
