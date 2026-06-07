@@ -6,7 +6,7 @@ services:
     environment:
       # POSTGRES_USER, POSTGRES_PASSWORD is the setup for the superuser
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: rootUserSeriousPassword1
+      POSTGRES_PASSWORD: 'spec!@l \characters'
       POSTGRES_DB: ivoryPgExisting
     ports:
       - "5555:5432"

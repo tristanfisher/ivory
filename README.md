@@ -33,7 +33,7 @@ connOpts := &DatabaseOptions{
     Database: "flannel",
     SslMode:  "disable",
     User:     "postgres",
-    Password: "rootUserSeriousPassword1",
+    Password: "spec!@l \characters",
     SslMode:  "verify-full"
 }
 ```
@@ -42,10 +42,10 @@ versus string interpolation:
 
 ```go
 connOpts := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		"localhost", 5555, "flannel", "rootUserSeriousPassword1", "flannel", "verify-full")
+		"localhost", 5555, "flannel", "spec!@l \characters", "flannel", "verify-full")
 ```
 
-Ivory handles building the DSN appropriately.
+Ivory handles building the DSN appropriately, including escaping special characters in parameters.
 
 ### Bootstrapping and Cleanup
 
@@ -72,7 +72,7 @@ dbOptions := &ivory.DatabaseOptions{
   Port:     5555,
   SslMode:  "disable",
   User:     "postgres",
-  Password: "rootUserSeriousPassword1",
+  Password: "spec!@l \characters",
 }
 // we discard two db handles here, one to the instance, one scoped to the database in the instance teardown() closes
 // database handles and cleans up the created database
@@ -104,7 +104,7 @@ for i := 0; i < 10; i++ {
     Port:     5555,
     SslMode:  "disable",
     User:     "postgres",
-    Password: "rootUserSeriousPassword1",
+    Password: "spec!@l \characters",
   }
 
   // we discard two db handles here, one to the instance, one scoped to the database in the instance teardown() closes

@@ -19,7 +19,7 @@ jobs:
         image: postgres:18-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: rootUserSeriousPassword1
+          POSTGRES_PASSWORD: spec!@l \\characters
           POSTGRES_DB: ivoryPgExisting
         ports:
           - 5555:5432
@@ -56,7 +56,8 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      # url.UserPassword("postgres", `spec!@l \\characters`) == postgres:spec%21%40l+%5C%5Ccharacters
       - name: Run tests
         env:
-          DATABASE_URL: postgres://postgres:rootUserSeriousPassword1@localhost:5555/ivoryPgExisting?sslmode=disable
+          DATABASE_URL: postgres://postgres:spec%21%40l+%5C%5Ccharacters@localhost:5555/ivoryPgExisting?sslmode=disable
         run: go test ./...
