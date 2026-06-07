@@ -93,6 +93,14 @@ func New(ctx context.Context, opts *DatabaseOptions, sqlText []string, createDat
 	userOptsDatabaseName := opts.Database
 	opts.Database = ""
 	dbHandleNoBoundDB, err := Connect(ctx, opts)
+
+	// previous versions of ivory returned dbHandleNoBoundDB.Close, even if Connect() erred
+	// noOpFn is returned so the expected Close() err can be called without nil checking.
+	noOpFn := func() error { return nil }
+	if dbHandleNoBoundDB == nil {
+		return nil, nil, opts.Database, noOpFn, err
+	}
+
 	if err != nil {
 		return nil, nil, opts.Database, dbHandleNoBoundDB.Close, err
 	}
@@ -469,6 +477,7 @@ func FindLikelyAbandonedDBs(ctx context.Context, dbHandle *sql.DB, prefix string
 	if err != nil {
 		return []string{}, err
 	}
+	defer rows.Close()
 	results := make([]string, 0)
 	for rows.Next() {
 		var r string
