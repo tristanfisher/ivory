@@ -412,7 +412,7 @@ func generateDbName(customIdPortion string) string {
 	// byte array of size 4*randSuffixLen
 	const charChoices = "abcdefghijklmnopqrstuvwxyz0123456789"
 	const charChoiceLen = len(charChoices)
-	
+
 	asciiSlice := make([]byte, randSuffixLen)
 	for i := range asciiSlice {
 		asciiSlice[i] = charChoices[rand.Intn(charChoiceLen)]
