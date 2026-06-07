@@ -292,6 +292,41 @@ func TestNew(t *testing.T) {
 			wantDBName: "flannel",
 			wantErr:    false,
 		},
+		{
+			name: "testEscapingCharacters_to_path",
+			args: args{
+				ctx: context.TODO(),
+				opts: &DatabaseOptions{
+					Host:     "/var/run/postgresql",
+					Port:     1999,
+					Database: "a.? \\ ?.a",
+					User:     "postgres user",
+					Password: "spec!@l \\characters",
+				},
+				createDatabase: true,
+				sqlText:        []string{},
+			},
+			wantDBName: "",   // no db will be created if we can't connect
+			wantErr:    true, // /var/run/postgreql not expected to be running
+		},
+		{
+			name: "testEscapingCharacters",
+			args: args{
+				ctx: context.TODO(),
+				opts: &DatabaseOptions{
+					Host:     "localhost",
+					Port:     5555,
+					SslMode:  "disable",
+					Database: "a_._ b",
+					User:     "postgres",
+					Password: "rootUserSeriousPassword1",
+				},
+				createDatabase: true,
+				sqlText:        []string{},
+			},
+			wantDBName: "", // no db will be created if we can't connect
+			wantErr:    false,
+		},
 		// if the user creates the database in sql text, they must clean up their own database(s)
 		{
 			name: "createDatabaseInSqlText",
@@ -536,4 +571,37 @@ func TestNew_UserProvidedSQL(t *testing.T) {
 		t.Errorf("New() failed to run sql expressions during setup.  got = %v, want value: %v", r, "world")
 	}
 
+}
+
+func Test_escapeAsSingleQuote(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "localhost",
+			args: args{
+				s: "localhost",
+			},
+			want: "'localhost'",
+		},
+		{
+			name: "spacedOutText",
+			args: args{
+				s: "this is a test string",
+			},
+			want: "'this is a test string'",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := escapeAsSingleQuote(tt.args.s); got != tt.want {
+				t.Errorf("escapeAsSingleQuote() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

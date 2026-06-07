@@ -1,5 +1,5 @@
 services:
-  ivory:
+  ivory_tester:
     build:
       context: .
     image: "postgres:18-alpine"
