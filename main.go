@@ -412,11 +412,7 @@ func generateDbName(customIdPortion string) string {
 	// byte array of size 4*randSuffixLen
 	const charChoices = "abcdefghijklmnopqrstuvwxyz0123456789"
 	const charChoiceLen = len(charChoices)
-
-	// a little gross to re-seed each call, but so would be doing this even if not required in New()
-	// this is not expected to be needed to be crypto-secure
-	rand.Seed(time.Now().UnixNano())
-
+	
 	asciiSlice := make([]byte, randSuffixLen)
 	for i := range asciiSlice {
 		asciiSlice[i] = charChoices[rand.Intn(charChoiceLen)]
