@@ -1,4 +1,6 @@
 test:
-	docker-compose up --detach
+	# prefix with a docker-compose down
+	docker-compose down ivory_tester --volumes
+	docker-compose up ivory_tester --detach
 	go test ./...
-	docker-compose down --volumes
+	docker-compose down ivory_tester --volumes

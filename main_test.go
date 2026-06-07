@@ -293,12 +293,12 @@ func TestNew(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "testEscapingCharacters",
+			name: "testEscapingCharacters_to_path",
 			args: args{
 				ctx: context.TODO(),
 				opts: &DatabaseOptions{
 					Host:     "/var/run/postgresql",
-					Port:     1234,
+					Port:     1999,
 					Database: "a.? \\ ?.a",
 					User:     "postgres user",
 					Password: "spec!@l \\characters",
@@ -306,8 +306,26 @@ func TestNew(t *testing.T) {
 				createDatabase: true,
 				sqlText:        []string{},
 			},
+			wantDBName: "",   // no db will be created if we can't connect
+			wantErr:    true, // /var/run/postgreql not expected to be running
+		},
+		{
+			name: "testEscapingCharacters",
+			args: args{
+				ctx: context.TODO(),
+				opts: &DatabaseOptions{
+					Host:     "localhost",
+					Port:     5555,
+					SslMode:  "disable",
+					Database: "a_._ b",
+					User:     "postgres",
+					Password: "rootUserSeriousPassword1",
+				},
+				createDatabase: true,
+				sqlText:        []string{},
+			},
 			wantDBName: "", // no db will be created if we can't connect
-			wantErr:    true,
+			wantErr:    false,
 		},
 		// if the user creates the database in sql text, they must clean up their own database(s)
 		{
