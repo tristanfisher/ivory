@@ -20,11 +20,11 @@ managed programmatically.
 When not told to create a database or run SQL, Ivory will simply try to connect to a PostgreSQL database, return
 database handles, and a function for dropping an existing database and closing DB handles.
 
-In this case, Ivory provides convenience and code clarity by providing a struct for connection instantiation instead of using string interpolation.
+The upfront advantage to using Ivory for connection instantiation is convenience and code clarity due to its
+usage of a struct with proper types, parameter escaping (e.g. spaces in passwords), and connection-string building that's
+correct for whatever parameters.
 
-e.g.
-
-Ivory:
+e.g. Ivory:
 
 ```go
 connOpts := &DatabaseOptions{
@@ -44,8 +44,6 @@ versus string interpolation:
 connOpts := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		"localhost", 5555, "flannel", "spec!@l \characters", "flannel", "verify-full")
 ```
-
-Ivory handles building the DSN appropriately, including escaping special characters in parameters.
 
 ### Bootstrapping and Cleanup
 
