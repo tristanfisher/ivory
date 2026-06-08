@@ -123,7 +123,7 @@ fmt.Printf("created: %s", databasesCreated)
   // created: _disp_pg_1664125384_q57qcq8qid6a7k7d _disp_pg_1664125384_1yj7i14v7iqauzln _disp_pg_1664125385_galb4ijb...
 ```
 
-That's it!  No need to act as a database janitor or deal with a slowly growing PostgreSQLinstance.
+That's it!  No need to act as a database janitor or deal with a slowly growing PostgreSQL instance.
 
 That said, if your code panics or the context is cancelled before the deferred functions can run,
 `FindLikelyAbandonedDBs()` and `DropDB()` are available to you for finding and dropping databases, respectively.
