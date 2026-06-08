@@ -19,7 +19,7 @@ jobs:
         image: postgres:18-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: 'spec!@l \\characters'
+          POSTGRES_PASSWORD: 'spec!@l \characters'
           POSTGRES_DB: ivoryPgExisting
         ports:
           - 5555:5432
@@ -57,6 +57,8 @@ jobs:
         run: go mod download
 
       # url.UserPassword("postgres", `spec!@l \\characters`) == postgres:spec%21%40l+%5C%5Ccharacters
+      # psql 'postgres://postgres:spec%21%40l%20%5Ccharacters@localhost:5555/ivoryPgExisting?sslmode=disable' against
+      # a locally running host to prove it will work without github's CI
       - name: Run tests
         env:
           DATABASE_URL: 'postgres://postgres:spec%21%40l%20%5Ccharacters@localhost:5555/ivoryPgExisting?sslmode=disable'
